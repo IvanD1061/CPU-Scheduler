@@ -226,6 +226,7 @@ void sjf(Process *p_list, SchedulerStats *stats)
     printProcessSpecifics(p_list, *stats);
     printSummaryData(p_list, *stats);
 }
+
 void rr(Process *p_list, SchedulerStats *stats)
 {
     printf("**** \n\n\n\n Round Robin\n");
@@ -244,9 +245,9 @@ void rr(Process *p_list, SchedulerStats *stats)
                 index = (rp - p_list) + i;
             }
 
-            if (index >= stats->TOTAL_CREATED_PROCESSES) // Wrap the index if it goes beyond the number of processes
+            if (index >= stats->TOTAL_CREATED_PROCESSES) 
             {
-                index -= stats->TOTAL_CREATED_PROCESSES; // Adjust index to wrap around to the beginning
+                index -= stats->TOTAL_CREATED_PROCESSES; 
             }
 
             p = &p_list[index];
@@ -335,4 +336,60 @@ void rr(Process *p_list, SchedulerStats *stats)
     printFinal(p_list, *stats);
     printProcessSpecifics(p_list, *stats);
     printSummaryData(p_list, *stats);
+}
+
+int compareArrivalTime(const void *a, const void *b)
+{
+
+    Process *p1 = (Process *)a;
+    Process *p2 = (Process *)b;
+
+    if (p1->A != p2->A)
+    {
+        return p1->A - p2->A;
+    }
+
+    return p1->processID - p2->processID;
+}
+
+int main(int argc, char *argv[])
+{
+    // Check for correct number of arguments
+    if (argc != 2)
+    {
+        printf("Error: Usage: ./scheduler <input-file>\n");
+        return 1;
+    }
+    // Open the file
+    FILE *stream1 = fopen(argv[1], "r");
+    FILE *stream2 = fopen(argv[1], "r");
+    FILE *stream3 = fopen(argv[1], "r");
+    if (stream1 == NULL)
+    {
+        printf("Error: Cannot open file %s\n", argv[1]);
+        return 1;
+    }
+
+    // Initialize the stats
+    SchedulerStats fcfs_stats = initStats();
+    SchedulerStats sjf_stats = initStats();
+    SchedulerStats rr_stats = initStats();
+
+    // Read all processes from the file
+    Process *fcfs_list = readAllProcessesFromFile(stream1, &fcfs_stats);
+    Process *sjf_list = readAllProcessesFromFile(stream2, &sjf_stats);
+    Process *rr_list = readAllProcessesFromFile(stream3, &rr_stats);
+    fclose(stream1);
+    fclose(stream2);
+    fclose(stream3);
+
+    // Run the FCFS scheduler
+    qsort(fcfs_list, fcfs_stats.TOTAL_CREATED_PROCESSES, sizeof(Process), compareArrivalTime);
+    fcfs(fcfs_list, &fcfs_stats);
+    qsort(sjf_list, sjf_stats.TOTAL_CREATED_PROCESSES, sizeof(Process), compareArrivalTime);
+    sjf(sjf_list, &sjf_stats);
+    qsort(rr_list, rr_stats.TOTAL_CREATED_PROCESSES, sizeof(Process), compareArrivalTime);
+    rr(rr_list, &rr_stats);
+
+    return 0;
 }
