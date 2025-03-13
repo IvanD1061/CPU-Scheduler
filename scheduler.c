@@ -124,3 +124,105 @@ void fcfs(Process *p_list, SchedulerStats *stats)
     printProcessSpecifics(p_list, *stats);
     printSummaryData(p_list, *stats);
 }
+
+void sjf(Process *p_list, SchedulerStats *stats)
+{
+
+    printf("**** \n\n\n\n Shortest Job First\n");
+    Process *p = NULL;
+    while (stats->TOTAL_FINISHED_PROCESSES < stats->TOTAL_CREATED_PROCESSES)
+    {
+        Process *s = NULL;
+
+        for (uint32_t i = 0; i < stats->TOTAL_CREATED_PROCESSES; i++)
+        {
+            p = &p_list[i];
+
+            // Terminated
+            if (p->status == TERMINATED)
+            {
+                continue;
+            }
+
+            // Blocked
+            if (p->status == BLOCKED)
+            {
+                p->currentIOBlockedTime++;
+                p->IOBurst--;
+
+                // Blocked -> Ready
+                if (p->IOBurst <= 0)
+                {
+                    p->status = READY;
+                }
+
+                stats->TOTAL_NUMBER_OF_CYCLES_SPENT_BLOCKED++;
+            }
+
+            // Unstarted -> Ready
+            else if (p->status == NOT_STARTED && p->A == stats->CURRENT_CYCLE)
+            {
+                p->status = READY;
+                stats->TOTAL_STARTED_PROCESSES++;
+                p->isFirstTimeRunning = 1;
+            }
+
+            // Ready
+            if (p->status == READY)
+            {
+                if (s == NULL)
+                {
+                    s = p; // If sj is NULL, assign p to sj
+                }
+                else
+                {
+                    // Compare the remaining CPU time of p and sj
+                    if ((p->C - p->currentCPUTimeRun) < (s->C - s->currentCPUTimeRun))
+                    {
+                        s = p; 
+                    }
+                }
+
+                p->currentWaitingTime++;
+            }
+
+            // Running
+            else if (p->status == RUNNING)
+
+            {
+                p->currentCPUTimeRun++;
+                p->CPUBurst--;
+                stats->TOTAL_STARTED_PROCESSES += p->isFirstTimeRunning;
+                p->isFirstTimeRunning = 0;
+
+                // Running -> Terminate
+                if (p->currentCPUTimeRun >= p->C)
+                {
+                    p->status = TERMINATED;
+                    p->finishingTime = stats->CURRENT_CYCLE;
+
+                    stats->TOTAL_FINISHED_PROCESSES++;
+                }
+
+                // Running -> Block
+                else if (p->CPUBurst <= 0)
+                {
+                    p->status = BLOCKED;
+                }
+            }
+        }
+
+        if (s != NULL)
+        {
+            setBursts(s);
+            s->status = RUNNING;
+            s->currentWaitingTime--;
+        }
+
+        stats->CURRENT_CYCLE++;
+    }
+    printStart(p_list, *stats);
+    printFinal(p_list, *stats);
+    printProcessSpecifics(p_list, *stats);
+    printSummaryData(p_list, *stats);
+}
