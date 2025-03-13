@@ -11,6 +11,7 @@ typedef enum Status
     BLOCKED = 3,
     TERMINATED = 4
 } Status;
+
 typedef struct Process
 {
     uint32_t A;         // A: Arrival time of the process

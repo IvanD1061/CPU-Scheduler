@@ -377,8 +377,9 @@ int main(int argc, char *argv[])
 
     // Read all processes from the file
     Process *fcfs_list = readAllProcessesFromFile(stream1, &fcfs_stats);
-    Process *sjf_list = readAllProcessesFromFile(stream2, &sjf_stats);
-    Process *rr_list = readAllProcessesFromFile(stream3, &rr_stats);
+    Process *rr_list = readAllProcessesFromFile(stream2, &rr_stats);
+    Process *sjf_list = readAllProcessesFromFile(stream3, &sjf_stats);
+    
     fclose(stream1);
     fclose(stream2);
     fclose(stream3);
@@ -386,10 +387,10 @@ int main(int argc, char *argv[])
     // Run the FCFS scheduler
     qsort(fcfs_list, fcfs_stats.TOTAL_CREATED_PROCESSES, sizeof(Process), compareArrivalTime);
     fcfs(fcfs_list, &fcfs_stats);
-    qsort(sjf_list, sjf_stats.TOTAL_CREATED_PROCESSES, sizeof(Process), compareArrivalTime);
-    sjf(sjf_list, &sjf_stats);
     qsort(rr_list, rr_stats.TOTAL_CREATED_PROCESSES, sizeof(Process), compareArrivalTime);
     rr(rr_list, &rr_stats);
+    qsort(sjf_list, sjf_stats.TOTAL_CREATED_PROCESSES, sizeof(Process), compareArrivalTime);
+    sjf(sjf_list, &sjf_stats);
 
     return 0;
 }
